@@ -1,0 +1,27 @@
+{
+  "name": "nutribot",
+  "version": "1.0.0",
+  "description": "AI-Powered Indian Diet Calorie Tracker — Telegram Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "calorie",
+    "tracker",
+    "indian-food",
+    "groq"
+  ],
+  "author": "Ayush Mathur",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "googleapis": "^171.4.0",
+    "groq-sdk": "^1.1.1",
+    "node-cron": "^4.2.1",
+    "node-telegram-bot-api": "^0.67.0"
+  }
+}
