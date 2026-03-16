@@ -171,22 +171,11 @@ bot.on('message', async (msg) => {
     await bot.sendMessage(msg.chat.id, reply, { parse_mode: 'Markdown' });
   } catch (err) {
     console.error('❌ Meal logging error:', err.message);
-
-    // If Gemini API is unavailable, store raw message with TODO (PRD §10.2)
-    try {
-      await sheets.appendMealLog(
-        'TODO — PARSE FAILED',
-        msg.text,
-        { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 }
-      );
-      await bot.sendMessage(
-        msg.chat.id,
-        `⚠️ ${err.message}\n\nYour message has been saved and will need manual correction.`
-      );
-    } catch (sheetErr) {
-      console.error('❌ Sheets fallback error:', sheetErr.message);
-      await bot.sendMessage(msg.chat.id, `⚠️ ${err.message}`);
-    }
+    await bot.sendMessage(
+      msg.chat.id,
+      `⚠️ ${err.message}\n\nYour message was *not logged*. Please try rephrasing with specific quantities.`,
+      { parse_mode: 'Markdown' }
+    );
   }
 });
 
