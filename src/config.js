@@ -7,7 +7,7 @@ const config = {
 
   // ─── Gemini AI ───────────────────────────────
   geminiApiKey: process.env.GEMINI_API_KEY,
-  geminiModel: 'gemini-1.5-flash',
+  geminiModel: 'gemini-2.5-flash',
 
   // ─── Google Sheets ───────────────────────────
   sheetsId: process.env.GOOGLE_SHEETS_ID,
