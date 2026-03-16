@@ -1,6 +1,6 @@
 # 🤖 NutriBot — AI-Powered Indian Diet Calorie Tracker
 
-A personal Telegram bot that tracks your daily calories and macros using natural language. Powered by **Groq Llama 3.1** for AI meal parsing and **Google Sheets** for persistent storage.
+A personal Telegram bot that tracks your daily calories and macros using natural language. Powered by **Google Gemini 2.0 Flash** for AI meal parsing and **Google Sheets** for persistent storage.
 
 > Just type `2 roti + dal makhani 1 katori` and NutriBot handles the rest.
 
@@ -27,7 +27,7 @@ A personal Telegram bot that tracks your daily calories and macros using natural
 | Service | What to do |
 |---------|-----------|
 | **Telegram** | Message [@BotFather](https://t.me/BotFather) → `/newbot` → save the token |
-| **Groq** | Create free account at [console.groq.com](https://console.groq.com) → copy API key |
+| **Gemini** | Get a free API key at [Google AI Studio](https://aistudio.google.com/apikey) |
 | **Google Sheets** | Create a spreadsheet named `CalorieTracker` with two tabs: `Logs` and `Daily Summary` |
 | **Google Cloud** | New project → enable Sheets API + Drive API → create Service Account → download JSON key → share the spreadsheet with the service account email |
 
@@ -49,7 +49,7 @@ Fill in your `.env`:
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token_from_botfather
 TELEGRAM_CHAT_ID=your_personal_chat_id
-GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
 GOOGLE_SHEETS_ID=your_spreadsheet_id
 GOOGLE_SERVICE_ACCOUNT_EMAIL=your-sa@project.iam.gserviceaccount.com
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
@@ -143,7 +143,7 @@ pm2 startup
 
 - **Node.js** — runtime
 - **node-telegram-bot-api** — Telegram integration
-- **groq-sdk** — Groq Llama 3.1 70B AI parsing
+- **@google/generative-ai** — Google Gemini 2.0 Flash AI parsing
 - **googleapis** — Google Sheets read/write
 - **node-cron** — scheduled reminders
 - **dotenv** — environment configuration
@@ -157,7 +157,7 @@ DietCalorieTracker/
 ├── index.js              # Entry point
 ├── src/
 │   ├── config.js         # Environment & goals
-│   ├── groq.js           # AI meal parsing
+│   ├── gemini.js         # AI meal parsing
 │   ├── sheets.js         # Google Sheets CRUD
 │   ├── bot.js            # Telegram bot + commands
 │   ├── formatter.js      # Message formatting

@@ -5,9 +5,9 @@ const config = {
   telegramToken: process.env.TELEGRAM_BOT_TOKEN,
   chatId: process.env.TELEGRAM_CHAT_ID,
 
-  // ─── Groq AI ────────────────────────────────
-  groqApiKey: process.env.GROQ_API_KEY,
-  groqModel: 'meta-llama/llama-4-scout-17b-16e-instruct',
+  // ─── Gemini AI ───────────────────────────────
+  geminiApiKey: process.env.GEMINI_API_KEY,
+  geminiModel: 'gemini-2.0-flash',
 
   // ─── Google Sheets ───────────────────────────
   sheetsId: process.env.GOOGLE_SHEETS_ID,
@@ -29,7 +29,7 @@ const config = {
 };
 
 // Validate required keys
-const required = ['telegramToken', 'chatId', 'groqApiKey', 'sheetsId', 'googleServiceAccountEmail', 'googlePrivateKey'];
+const required = ['telegramToken', 'chatId', 'geminiApiKey', 'sheetsId', 'googleServiceAccountEmail', 'googlePrivateKey'];
 // DEBUG — remove after fixing
 console.log('🔑 Key starts with:', config.googlePrivateKey.slice(0, 40));
 console.log('🔑 Key ends with:', config.googlePrivateKey.slice(-40));

@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const config = require('./config');
-const { parseMeal } = require('./groq');
+const { parseMeal } = require('./gemini');
 const sheets = require('./sheets');
 const fmt = require('./formatter');
 
@@ -134,7 +134,7 @@ bot.on('message', async (msg) => {
     // Send "typing" indicator
     await bot.sendChatAction(msg.chat.id, 'typing');
 
-    // 1. Parse meal via Groq
+    // 1. Parse meal via Gemini
     const parsed = await parseMeal(msg.text);
 
     // 2. Append to Google Sheets
@@ -160,7 +160,7 @@ bot.on('message', async (msg) => {
   } catch (err) {
     console.error('❌ Meal logging error:', err.message);
 
-    // If Groq API is unavailable, store raw message with TODO (PRD §10.2)
+    // If Gemini API is unavailable, store raw message with TODO (PRD §10.2)
     try {
       await sheets.appendMealLog(
         'TODO — PARSE FAILED',

@@ -1,7 +1,7 @@
-const Groq = require('groq-sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const config = require('./config');
 
-const groq = new Groq({ apiKey: config.groqApiKey });
+const genAI = new GoogleGenerativeAI(config.geminiApiKey);
 
 // System prompt from PRD §10.1 — Indian food reference table
 const SYSTEM_PROMPT = `You are a nutrition expert specializing in Indian food. Parse the meal input and return ONLY a raw JSON object with no markdown or explanation.
@@ -25,8 +25,18 @@ Reference values:
 
 Return ONLY the JSON object.`;
 
+const model = genAI.getGenerativeModel({
+  model: config.geminiModel,
+  systemInstruction: SYSTEM_PROMPT,
+  generationConfig: {
+    temperature: 0.1,
+    maxOutputTokens: 300,
+    responseMimeType: 'application/json',
+  },
+});
+
 /**
- * Parse a meal description using Groq Llama 3.1.
+ * Parse a meal description using Gemini 2.0 Flash.
  * Retries once on malformed JSON as per PRD §10.2.
  * @param {string} userMessage — raw meal text from the user
  * @returns {object} parsed macro data or throws
@@ -34,17 +44,9 @@ Return ONLY the JSON object.`;
 async function parseMeal(userMessage) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const chatCompletion = await groq.chat.completions.create({
-        model: config.groqModel,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userMessage },
-        ],
-        temperature: 0.1,
-        max_tokens: 300,
-      });
+      const result = await model.generateContent(userMessage);
+      const raw = result.response.text();
 
-      const raw = chatCompletion.choices[0]?.message?.content || '';
       // Strip any accidental markdown fencing
       const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       const parsed = JSON.parse(cleaned);
@@ -66,7 +68,7 @@ async function parseMeal(userMessage) {
       return parsed;
     } catch (err) {
       if (attempt === 0) {
-        console.log(`⚠️  Groq parse attempt 1 failed, retrying: ${err.message}`);
+        console.log(`⚠️  Gemini parse attempt 1 failed, retrying: ${err.message}`);
         continue;
       }
       throw new Error('Could not parse your meal — try rephrasing with specific quantities.');
