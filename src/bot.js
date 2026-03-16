@@ -90,11 +90,23 @@ bot.onText(/\/undo/, async (msg) => {
     if (!deleted) {
       return bot.sendMessage(msg.chat.id, '📭 No meals to undo.');
     }
-    await bot.sendMessage(
-      msg.chat.id,
-      `↩️ *Removed*: ${deleted.mealDesc}\n🔥 ${deleted.calories} kcal  |  💪 ${deleted.protein}g protein`,
-      { parse_mode: 'Markdown' }
-    );
+
+    // Fetch updated totals after deletion
+    const todayLogs = await sheets.getTodayLogs();
+    const totals = sheets.aggregateTotals(todayLogs);
+
+    const lines = [
+      `↩️ *Removed*: ${deleted.mealDesc}`,
+      `🔥 ${deleted.calories} kcal  |  💪 ${deleted.protein}g protein  |  🌾 ${deleted.carbs}g carbs  |  🥑 ${deleted.fat}g fat`,
+      ``,
+      `─────────────────────`,
+      `📊 *Updated Today's Totals*`,
+      `🍽 Meals remaining: ${totals.mealCount}`,
+      `🔥 ${totals.calories} kcal  |  💪 ${totals.protein}g protein`,
+      `🌾 ${totals.carbs}g carbs  |  🥑 ${totals.fat}g fat  |  🌿 ${totals.fiber}g fiber`,
+    ];
+
+    await bot.sendMessage(msg.chat.id, lines.join('\n'), { parse_mode: 'Markdown' });
   } catch (err) {
     console.error('❌ /undo error:', err.message);
     await bot.sendMessage(msg.chat.id, '⚠️ Error undoing last meal. Please try again.');
