@@ -30,7 +30,7 @@ const model = genAI.getGenerativeModel({
   systemInstruction: SYSTEM_PROMPT,
   generationConfig: {
     temperature: 0.1,
-    maxOutputTokens: 300,
+    maxOutputTokens: 1024,
   },
 });
 
