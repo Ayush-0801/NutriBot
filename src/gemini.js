@@ -1,5 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const config = require('./config');
+const { parseMealWithGroq } = require('./groq');
 
 const genAI = new GoogleGenerativeAI(config.geminiApiKey);
 
@@ -35,12 +36,10 @@ const model = genAI.getGenerativeModel({
 });
 
 /**
- * Parse a meal description using Gemini 2.0 Flash.
- * Retries once on malformed JSON as per PRD §10.2.
- * @param {string} userMessage — raw meal text from the user
+ * Try to parse meal via Gemini (2 attempts).
  * @returns {object} parsed macro data or throws
  */
-async function parseMeal(userMessage) {
+async function parseMealWithGemini(userMessage) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const result = await model.generateContent(userMessage);
@@ -70,7 +69,37 @@ async function parseMeal(userMessage) {
         console.log(`⚠️  Gemini parse attempt 1 failed, retrying: ${err.message}`);
         continue;
       }
+      throw err; // bubble up to the fallback handler
+    }
+  }
+}
+
+/**
+ * Parse a meal description — tries Gemini first, falls back to Groq.
+ * @param {string} userMessage — raw meal text from the user
+ * @returns {object} parsed macro data (with optional _provider field) or throws
+ */
+async function parseMeal(userMessage) {
+  try {
+    const result = await parseMealWithGemini(userMessage);
+    result._provider = 'gemini';
+    return result;
+  } catch (geminiErr) {
+    console.error(`❌ Gemini failed after retries: ${geminiErr.message}`);
+
+    // ─── Groq Fallback ────────────────────────
+    if (!config.groqApiKey) {
       throw new Error('Could not parse your meal — try rephrasing with specific quantities.');
+    }
+
+    console.log('🔄 Falling back to Groq...');
+    try {
+      const result = await parseMealWithGroq(userMessage);
+      result._provider = 'groq';
+      return result;
+    } catch (groqErr) {
+      console.error(`❌ Groq fallback also failed: ${groqErr.message}`);
+      throw new Error('Could not parse your meal — both AI providers failed. Try rephrasing with specific quantities.');
     }
   }
 }

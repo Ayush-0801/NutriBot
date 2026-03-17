@@ -168,6 +168,11 @@ bot.on('message', async (msg) => {
       reply += '\n\n' + fmt.formatFlaggedReply(parsed);
     }
 
+    // 6. Note if fallback provider was used
+    if (parsed._provider === 'groq') {
+      reply += '\n\n_⚡ Parsed via Groq (Gemini was unavailable)_';
+    }
+
     await bot.sendMessage(msg.chat.id, reply, { parse_mode: 'Markdown' });
   } catch (err) {
     console.error('❌ Meal logging error:', err.message);

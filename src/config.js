@@ -9,6 +9,10 @@ const config = {
   geminiApiKey: process.env.GEMINI_API_KEY,
   geminiModel: 'gemini-2.5-flash',
 
+  // ─── Groq AI (fallback) ──────────────────────
+  groqApiKey: process.env.GROQ_API_KEY || '',
+  groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+
   // ─── Google Sheets ───────────────────────────
   sheetsId: process.env.GOOGLE_SHEETS_ID,
   googleServiceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
