@@ -169,3 +169,11 @@ DietCalorieTracker/
 ```
 
 ---
+
+## Reference Links
+1. https://console.cloud.google.com/auth/overview/create?orgonly=true&project=nutribot-490406&supportedpurview=organizationId
+2. https://docs.google.com/spreadsheets/d/1GFtn2dMPjU_CiY5gHZnE7dcve5IX1eI0EECW0FoqWj4/edit?gid=0#gid=0
+3. https://console.groq.com/keys
+4. https://aistudio.google.com/api-keys?projectFilter=gen-lang-client-0636504204
+5. https://railway.com/project/7c85123f-ce41-4c39-b3c0-d3583c68a8af?environmentId=c5a58a31-84e4-4281-869d-0d1760e7d285
+6. https://claude.ai/share/579e9b36-a87f-4cff-b0ae-b6efc107edec
