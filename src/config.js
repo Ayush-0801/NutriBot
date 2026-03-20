@@ -13,6 +13,11 @@ const config = {
   groqApiKey: process.env.GROQ_API_KEY || '',
   groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
 
+  // ─── Food Databases ──────────────────────────
+  nutritionixAppId: process.env.NUTRITIONIX_APP_ID || '',
+  nutritionixApiKey: process.env.NUTRITIONIX_API_KEY || '',
+  usdaApiKey: process.env.USDA_API_KEY || '',
+
   // ─── Google Sheets ───────────────────────────
   sheetsId: process.env.GOOGLE_SHEETS_ID,
   googleServiceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,

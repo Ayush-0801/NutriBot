@@ -1,30 +1,20 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI, Schema, Type } = require('@google/generative-ai');
 const config = require('./config');
 const { parseMealWithGroq } = require('./groq');
+const foodDb = require('./food_db');
 
 const genAI = new GoogleGenerativeAI(config.geminiApiKey);
 
-// System prompt from PRD §10.1 — Indian food reference table
-const SYSTEM_PROMPT = `You are a nutrition expert specializing in Indian food. Parse the meal input and return ONLY a raw JSON object with no markdown or explanation.
+const SYSTEM_PROMPT = `You are a nutrition expert parsing meal descriptions. Output ONLY a raw JSON object with no markdown or text.
 
-Return exactly:
-{ "meal_description": string, "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number }
+Return exactly this JSON structure and nothing else:
+{ "meal_description": "string", "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number }
 
-Reference values:
-1 roti = 80 kcal, 3g protein, 15g carbs, 1g fat
-1 katori dal = 150 kcal, 9g protein, 25g carbs, 2g fat
-1 katori rice cooked = 195 kcal, 4g protein, 43g carbs, 0.5g fat
-100g paneer = 265 kcal, 18g protein, 3g carbs, 20g fat
-1 plate poha = 250 kcal, 5g protein, 45g carbs, 6g fat
-100g chicken breast = 165 kcal, 31g protein, 0g carbs, 3.6g fat
-1 idli = 40 kcal | 1 dosa = 120 kcal | 1 cup chai = 60 kcal
-1 katori sabzi = 100 kcal avg | 1 paratha = 200 kcal
-100g curd = 60 kcal | 1 glass lassi = 180 kcal
-1 boiled egg = 70 kcal, 6g protein, 0.5g carbs, 5g fat
-1 samosa = 130 kcal | 1 banana = 90 kcal
-1 scoop whey protein = 120 kcal, 24g protein, 3g carbs, 1.5g fat
+You will receive Context Data from databases. If the meal is a complex dish, mathematically combine the component macros from the Context Data to estimate the total.
+Do NOT show your work. Output ONLY the JSON object. Never return 0 macros for a valid food item.
 
-Return ONLY the JSON object.`;
+Default References (if Context Data is missing):
+1 roti = 80kcal, 3g pro, 15g carb, 1g fat | 1 katori dal = 150kcal, 9g pro, 25g carb, 2g fat | 100g paneer = 265kcal, 18g pro, 3g carb, 20g fat`;
 
 const model = genAI.getGenerativeModel({
   model: config.geminiModel,
@@ -32,6 +22,7 @@ const model = genAI.getGenerativeModel({
   generationConfig: {
     temperature: 0.1,
     maxOutputTokens: 1024,
+    responseMimeType: "application/json",
   },
 });
 
@@ -75,13 +66,46 @@ async function parseMealWithGemini(userMessage) {
 }
 
 /**
+ * Extract core food names from text to query APIs
+ */
+async function extractFoodItems(text) {
+  try {
+    const minModel = genAI.getGenerativeModel({ model: config.geminiModel });
+    const prompt = `Extract the individual base food ingredients or items from this meal description into a JSON array of simple string queries. If it is a complex, uncommon, or creative dish, break it down into its core components so they can be accurately searched in food databases.
+Example: "2 roti and 1 cup dal" -> ["roti", "dal makhani"].
+Example: "lemon curd cruffin" -> ["lemon curd", "croissant", "muffin"].
+Return ONLY a JSON array of strings: ${text}`;
+    const result = await minModel.generateContent(prompt);
+    const raw = result.response.text();
+    const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error('⚠️ Failed to extract foods, proceeding without context:', err.message);
+    return [];
+  }
+}
+
+/**
  * Parse a meal description — tries Gemini first, falls back to Groq.
  * @param {string} userMessage — raw meal text from the user
  * @returns {object} parsed macro data (with optional _provider field) or throws
  */
 async function parseMeal(userMessage) {
+  
+  // 1. Extract items
+  const items = await extractFoodItems(userMessage);
+
+  // 2. Gather context
+  const dbContext = await foodDb.gatherConfidenceData(items);
+  let promptText = userMessage;
+  if (dbContext) {
+    promptText = `${dbContext}\n\nUser Input: ${userMessage}`;
+    console.log('✅ DB Context gathered:', dbContext);
+  }
+
+  // 3. Final inference
   try {
-    const result = await parseMealWithGemini(userMessage);
+    const result = await parseMealWithGemini(promptText);
     result._provider = 'gemini';
     return result;
   } catch (geminiErr) {
@@ -94,7 +118,7 @@ async function parseMeal(userMessage) {
 
     console.log('🔄 Falling back to Groq...');
     try {
-      const result = await parseMealWithGroq(userMessage);
+      const result = await parseMealWithGroq(promptText);
       result._provider = 'groq';
       return result;
     } catch (groqErr) {

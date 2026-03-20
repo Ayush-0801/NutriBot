@@ -11,26 +11,16 @@ function getClient() {
 }
 
 // Re-use the same system prompt from gemini.js for consistency
-const SYSTEM_PROMPT = `You are a nutrition expert specializing in Indian food. Parse the meal input and return ONLY a raw JSON object with no markdown or explanation.
+const SYSTEM_PROMPT = `You are a nutrition expert parsing meal descriptions. Output ONLY a raw JSON object with no markdown or text.
 
-Return exactly:
-{ "meal_description": string, "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number }
+Return exactly this JSON structure and nothing else:
+{ "meal_description": "string", "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number }
 
-Reference values:
-1 roti = 80 kcal, 3g protein, 15g carbs, 1g fat
-1 katori dal = 150 kcal, 9g protein, 25g carbs, 2g fat
-1 katori rice cooked = 195 kcal, 4g protein, 43g carbs, 0.5g fat
-100g paneer = 265 kcal, 18g protein, 3g carbs, 20g fat
-1 plate poha = 250 kcal, 5g protein, 45g carbs, 6g fat
-100g chicken breast = 165 kcal, 31g protein, 0g carbs, 3.6g fat
-1 idli = 40 kcal | 1 dosa = 120 kcal | 1 cup chai = 60 kcal
-1 katori sabzi = 100 kcal avg | 1 paratha = 200 kcal
-100g curd = 60 kcal | 1 glass lassi = 180 kcal
-1 boiled egg = 70 kcal, 6g protein, 0.5g carbs, 5g fat
-1 samosa = 130 kcal | 1 banana = 90 kcal
-1 scoop whey protein = 120 kcal, 24g protein, 3g carbs, 1.5g fat
+You will receive Context Data from databases. If the meal is a complex dish, mathematically combine the component macros from the Context Data to estimate the total.
+Do NOT show your work. Output ONLY the JSON object. Never return 0 macros for a valid food item.
 
-Return ONLY the JSON object.`;
+Default References (if Context Data is missing):
+1 roti = 80kcal, 3g pro, 15g carb, 1g fat | 1 katori dal = 150kcal, 9g pro, 25g carb, 2g fat | 100g paneer = 265kcal, 18g pro, 3g carb, 20g fat`;
 
 /**
  * Parse a meal description using Groq (fallback provider).
@@ -54,6 +44,7 @@ async function parseMealWithGroq(userMessage) {
         ],
         temperature: 0.1,
         max_tokens: 1024,
+        response_format: { type: "json_object" },
       });
 
       const raw = chatCompletion.choices[0].message.content;
